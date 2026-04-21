@@ -151,6 +151,7 @@ Open `index.html` directly in any web browser. Basic data and authentication use
 ```bash
 cd backend
 npm install
+npm install twilio
 ```
 
 ---
@@ -159,7 +160,6 @@ npm install
 
 Create a `.env` file inside the `backend/` directory.
 
->  **Never commit this file to a public repository.** Add `.env` to your `.gitignore`.
 
 ```env
 PORT=5001
@@ -199,6 +199,7 @@ Server starts at: **`http://localhost:5001`**
 ---
 
 video demo: **https://drive.google.com/file/d/1FebHmekltOXEcv5vT8evTPRJhJFCvxWd/view?usp=drivesdk**
+git link: **https://github.com/jaruplagouri5-beep/medisync**
 ## API Endpoints
 
 | Method | Endpoint | Description |
