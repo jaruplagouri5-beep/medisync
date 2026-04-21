@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MediSync - Scanner Portal</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/html5-qrcode"></script>
+</head>
+<body>
+
+  <div class="role-select-page" style="min-height: 100vh; padding: 20px 0;">
+    <div class="brand-hero" style="margin-bottom: 10px;">
+      <h1>Medi<span>Sync</span> Scanner</h1>
+    </div>
+
+    <div class="login-card" id="main-scanner-card" style="text-align: center; max-width: 500px; width: 100%; margin: 0 auto;">
+      
+      <div id="scanner-init-view" style="display: none;">
+        <div style="font-size: 3rem; margin-bottom: 10px;">📱</div>
+        <h2 style="font-family: var(--font-display); margin-bottom: 20px;">Identify Patient</h2>
+        <button class="btn btn-primary w-full btn-lg mb-3" style="justify-content:center;" onclick="startAutoScanner()">📷 Scan QR Code (Camera)</button>
+        <div style="margin: 15px 0; color: var(--text-muted); font-size: 0.85rem; font-weight: bold;">─── OR ───</div>
+        <button class="btn btn-ghost w-full btn-lg" style="justify-content:center; border: 1px solid var(--glass-border);" onclick="showManualEntry()">✍️ Enter ID Manually</button>
+      </div>
+
+      <div id="camera-section" style="display: none;">
+          <h3 style="margin-bottom:15px; color:var(--text-primary);">Scanning QR...</h3>
+          <div id="qr-reader" style="width: 100%; max-width: 400px; margin: 0 auto; background: rgba(0,0,0,0.2); border-radius: 8px; overflow: hidden; border: 1px solid var(--glass-border); margin-bottom: 15px;"></div>
+          <button class="btn btn-ghost w-full" style="justify-content:center;" onclick="resetScanner()">Cancel Scanner</button>
+      </div>
+
+      <div id="manual-section" style="display: none; text-align: left;">
+          <label style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 8px; display: block; font-weight: bold;">✍️ Enter Patient ID</label>
+          <input type="text" id="manual-patient-id" class="form-control mb-4" placeholder="e.g. P-24114045" style="border: 1px solid var(--blue); color: white; width: 100%; padding: 12px; background: transparent;">
+          <button class="btn btn-primary w-full btn-lg" style="justify-content:center;" onclick="handleManualSubmit()">Continue →</button>
+          <button class="btn btn-ghost w-full mt-3" style="justify-content:center;" onclick="resetScanner()">Cancel</button>
+      </div>
+
+      <div id="flow-selection" style="display: none;">
+          <div style="font-size: 3rem; margin-bottom: 10px;">👤</div>
+          <h2 style="font-family: var(--font-display); margin-bottom: 25px;">Patient Portal</h2>
+          
+          <div id="doctor-section" style="margin-bottom: 15px;">
+            <button class="btn btn-primary w-full btn-lg mb-4" style="justify-content:center;" onclick="showDoctorForm()">👨‍⚕️ Normal Checkup (Request OTP)</button>
+          </div>
+
+          <div id="doctor-form" style="display: none; text-align: left; margin-bottom: 15px; padding: 15px; background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border2); border-radius: var(--radius-sm);">
+            <label class="form-label">Doctor / Clinic Name</label>
+            <input type="text" id="doc-name-input" class="form-control mb-4" placeholder="e.g. Dr. Sharma">
+            <button class="btn btn-success w-full" id="request-otp-btn" style="justify-content:center;" onclick="requestDoctorAccess()">Send OTP to Patient</button>
+          </div>
+
+          <button class="btn btn-danger w-full btn-lg" style="justify-content:center;" onclick="triggerEmergency()">🚨 EMERGENCY MODE (SOS)</button>
+      </div>
+    </div>
+
+    <div id="triage-form-container" style="display: none; width: 100%; max-width: 900px; margin: 0 auto;"></div>
+  </div>
+
+  <div id="toast-container" class="toast-container"></div>
+  <script src="js/db.js"></script>
+  <script src="js/scanner.js"></script>
+</body>
+</html>

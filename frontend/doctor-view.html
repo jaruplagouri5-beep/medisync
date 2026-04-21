@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MediSync - Doctor View Portal</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    .doctor-banner {
+      background: rgba(13, 23, 45, 0.9);
+      border-bottom: 1px solid var(--glass-border);
+      padding: 14px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+    }
+    .timer-display-box {
+      text-align: right;
+      background: rgba(239, 68, 68, 0.1);
+      padding: 6px 16px;
+      border-radius: 12px;
+      border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+    .timer-text {
+      font-family: var(--font-display);
+      font-weight: 800;
+      color: var(--red);
+      font-size: 1.2rem;
+      letter-spacing: 1px;
+    }
+    .doctor-info-badge {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--red);
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--red);
+      animation: livePulse 1.5s infinite;
+    }
+  </style>
+</head>
+<body class="doctor-view-body">
+
+  <div class="doctor-banner">
+    <div class="doctor-info-badge">
+      <div class="pulse-dot"></div>
+      <div>
+        <div style="font-family:var(--font-display);font-weight:700;color:var(--text-primary);font-size:1rem;">
+          🛡️ Doctor Secure Access Mode
+        </div>
+        <div style="font-size:0.75rem;color:var(--text-secondary);">
+          Patient ID: <span id="doc-patient-id" style="color:var(--blue);font-weight:600;">Loading...</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="timer-display-box">
+      <div style="font-size:0.65rem;color:var(--text-secondary);text-transform:uppercase;font-weight:700;margin-bottom:2px;">
+        Access Expires In
+      </div>
+      <div class="timer-text" id="session-timer">15:00</div>
+    </div>
+  </div>
+
+  <div class="layout" style="display:block;padding:24px;max-width:900px;margin:0 auto;min-height:100vh;">
+    <div class="card mb-6" id="patient-profile-card">
+      <div style="padding:40px;text-align:center;color:var(--text-secondary);">
+        Fetching patient profile details...
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+      <h3 style="font-family:var(--font-display);color:var(--text-primary);margin:0;">Verified Medical Timeline</h3>
+      <span class="badge badge-blue">Records Synced</span>
+    </div>
+
+    <div id="patient-records-timeline">
+      <div style="padding:40px;text-align:center;color:var(--text-secondary);">
+        Syncing verified records from IPFS...
+      </div>
+    </div>
+
+    <div style="padding:40px 0;text-align:center;border-top:1px solid var(--glass-border);margin-top:40px;">
+      <p style="font-size:0.8rem;color:var(--text-muted);">
+        End of records. All data is read-only and encrypted via MediSync Protocol.
+      </p>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="expired-overlay" style="background:rgba(10,15,28,0.98);z-index:9999;">
+    <div class="modal" style="text-align:center;border-color:var(--red);max-width:400px;box-shadow:0 0 50px rgba(239,68,68,0.2);">
+      <div style="font-size:5rem;margin-bottom:20px;">⏳</div>
+      <h2 style="font-family:var(--font-display);color:var(--text-primary);margin-bottom:12px;">Session Expired</h2>
+      <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:24px;line-height:1.6;">
+        Your secure 15-minute access window has closed to protect patient privacy. Please request a new scan to continue.
+      </p>
+      <button class="btn btn-primary w-full mb-3" onclick="returnToDoctorDashboard()">
+        Return to Doctor Dashboard
+      </button>
+      <button class="btn btn-ghost w-full" onclick="window.close()">
+        Close Window
+      </button>
+    </div>
+  </div>
+
+  <div id="toast-container" style="position:fixed;bottom:24px;right:24px;z-index:10000;"></div>
+
+  <script src="js/doctor-view.js"></script>
+</body>
+</html>

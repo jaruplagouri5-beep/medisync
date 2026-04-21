@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MediSync — One Scan. One Identity. Total Care.</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="frontend/css/style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <style>
+    /* ── Emergency Overlay ── */
+    #emergency-overlay {
+      display: none; position: fixed; inset: 0; z-index: 1000;
+      background: #050a14; overflow-y: auto;
+      flex-direction: column; font-family: 'DM Sans', sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    #emergency-overlay.open { display: flex; flex-direction: column; }
+
+    .em-header {
+      background: rgba(10,18,35,0.95);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+    }
+    .em-header-left { display: flex; align-items: center; gap: 10px; }
+    .em-logo { display: flex; align-items: center; gap: 8px; font-family: 'Sora', sans-serif; font-weight: 800; font-size: 1rem; color: #F8FAFC; }
+    .em-logo-pill { background: linear-gradient(135deg,#DC2626,#7C3AED); border-radius: 6px; padding: 4px 8px; font-size: 0.72rem; font-weight: 700; color: white; text-transform: uppercase; letter-spacing: 0.04em; }
+    .em-badge { display: flex; align-items: center; gap: 6px; background: rgba(220,38,38,0.15); border: 1px solid rgba(220,38,38,0.35); border-radius: 20px; padding: 5px 12px; font-size: 0.75rem; font-weight: 700; color: #FCA5A5; text-transform: uppercase; letter-spacing: 0.04em; }
+    .em-pulse { width: 7px; height: 7px; border-radius: 50%; background: #EF4444; animation: emPulse 1.4s ease-in-out infinite; }
+    @keyframes emPulse { 0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.4;transform:scale(0.7);} }
+    .em-offline { background: rgba(5,150,105,0.15); border: 1px solid rgba(5,150,105,0.3); border-radius: 20px; padding: 4px 10px; font-size: 0.7rem; font-weight: 600; color: #6EE7B7; }
+    .em-close { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; padding: 6px 14px; color: #94A3B8; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+    .em-close:hover { background: rgba(255,255,255,0.14); color: #F1F5F9; }
+
+    .em-main { flex: 1; padding: 20px; display: flex; flex-direction: column; gap: 12px; max-width: 520px; margin: 0 auto; width: 100%; }
+
+    .em-patient-identity { background: rgba(15,25,50,0.8); border: 1px solid rgba(80,140,255,0.13); backdrop-filter: blur(16px); border-radius: 16px; padding: 18px 20px; display: flex; align-items: center; gap: 14px; }
+    .em-avatar { width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(135deg,#2563EB,#7C3AED); display: flex; align-items: center; justify-content: center; font-family: 'Sora', sans-serif; font-weight: 800; font-size: 1.1rem; color: white; flex-shrink: 0; }
+    .em-patient-name { font-family: 'Sora', sans-serif; font-weight: 800; font-size: 1.1rem; color: #F8FAFC; margin-bottom: 3px; }
+    .em-patient-meta { font-size: 0.8rem; color: #94A3B8; }
+
+    .em-section-label { font-size: 0.68rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: #64748B; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+    .em-section-label::after { content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.06); }
+
+    .em-blood-card { background: rgba(15,25,50,0.8); border: 1px solid rgba(80,140,255,0.13); border-radius: 14px; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; }
+    .em-blood-display { font-family: 'Sora', sans-serif; font-weight: 800; font-size: 2.6rem; color: #FCA5A5; line-height: 1; }
+    .em-blood-sub { font-size: 0.78rem; color: #94A3B8; margin-top: 4px; }
+    .em-blood-icon { font-size: 2.2rem; opacity: 0.5; }
+
+    .em-allergy-card { background: linear-gradient(135deg,rgba(220,38,38,0.12),rgba(159,18,57,0.08)); border: 1.5px solid rgba(220,38,38,0.3); border-radius: 14px; padding: 16px 20px; }
+    .em-allergy-warning { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .em-warning-icon { width: 30px; height: 30px; border-radius: 50%; background: rgba(220,38,38,0.2); display: flex; align-items: center; justify-content: center; font-size: 0.95rem; flex-shrink: 0; }
+    .em-warning-title { font-family: 'Sora', sans-serif; font-weight: 700; font-size: 0.875rem; color: #FCA5A5; }
+    .em-warning-sub { font-size: 0.72rem; color: #F87171; margin-top: 1px; }
+    .em-allergy-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+    .em-allergy-tag { background: rgba(220,38,38,0.15); border: 1px solid rgba(220,38,38,0.3); border-radius: 8px; padding: 7px 16px; font-family: 'Sora', sans-serif; font-weight: 700; font-size: 0.875rem; color: #FCA5A5; }
+
+    .em-conditions-card { background: rgba(15,25,50,0.8); border: 1px solid rgba(80,140,255,0.13); border-radius: 14px; padding: 16px 20px; }
+    .em-condition-item { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .em-condition-item:last-child { border-bottom: none; }
+    .em-condition-dot { width: 8px; height: 8px; border-radius: 50%; background: #60A5FA; flex-shrink: 0; }
+    .em-condition-text { font-size: 0.875rem; color: #CBD5E1; font-weight: 500; }
+
+    .em-contact-card { background: linear-gradient(135deg,rgba(5,150,105,0.1),rgba(13,148,136,0.06)); border: 1px solid rgba(5,150,105,0.25); border-radius: 14px; padding: 16px 20px; display: flex; align-items: center; gap: 12px; }
+    .em-contact-icon { font-size: 1.6rem; }
+    .em-contact-name { font-weight: 600; font-size: 0.9rem; color: #A7F3D0; margin-bottom: 2px; }
+    .em-contact-phone { font-size: 0.8rem; color: #6EE7B7; font-weight: 500; }
+
+    .em-note-card { background: linear-gradient(135deg,rgba(37,99,235,0.1),rgba(124,58,237,0.06)); border: 1px solid rgba(37,99,235,0.2); border-radius: 14px; padding: 14px 18px; }
+    .em-note-header { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+    .em-note-label { font-size: 0.7rem; font-weight: 700; color: #93C5FD; text-transform: uppercase; letter-spacing: 0.08em; }
+    .em-note-text { font-size: 0.85rem; color: #CBD5E1; line-height: 1.6; }
+
+    .em-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+    .em-action-btn { width: 100%; padding: 16px; border: none; border-radius: 14px; font-family: 'Sora', sans-serif; font-size: 0.95rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: all 0.18s; }
+    .em-action-btn:hover { transform: translateY(-2px); }
+    .em-btn-call { background: linear-gradient(135deg,#DC2626,#9F1239); color: white; box-shadow: 0 4px 16px rgba(220,38,38,0.35); }
+    .em-btn-hospital { background: linear-gradient(135deg,#1D4ED8,#7C3AED); color: white; box-shadow: 0 4px 16px rgba(37,99,235,0.3); }
+
+    .em-confirm { display: none; background: linear-gradient(135deg,rgba(5,150,105,0.15),rgba(13,148,136,0.1)); border: 1.5px solid rgba(5,150,105,0.35); border-radius: 14px; padding: 18px 20px; text-align: center; }
+    .em-confirm.visible { display: block; animation: emSlideUp 0.3s ease; }
+    @keyframes emSlideUp { from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);} }
+    .em-confirm-icon { font-size: 1.8rem; margin-bottom: 6px; }
+    .em-confirm-title { font-family: 'Sora', sans-serif; font-weight: 700; font-size: 1rem; color: #6EE7B7; margin-bottom: 4px; }
+    .em-confirm-sub { font-size: 0.8rem; color: #A7F3D0; line-height: 1.5; }
+
+    .em-footer { text-align: center; padding: 14px 20px; font-size: 0.7rem; color: #475569; border-top: 1px solid rgba(255,255,255,0.05); flex-shrink: 0; }
+
+    /* Login screen layout */
+    #login-screen {
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh; padding: 24px 20px;
+      flex-direction: column; gap: 28px;
+    }
+    .login-brand { text-align: center; }
+    .login-brand h1 { font-family: 'Sora', sans-serif; font-weight: 800; font-size: 2.2rem; letter-spacing: -0.03em; color: #E8F0FF; }
+    .login-brand h1 span { color: #3B82F6; }
+    .login-brand p { font-size: 0.9rem; color: #94A3B8; margin-top: 6px; }
+    .login-brand-icon { width: 56px; height: 56px; border-radius: 16px; background: linear-gradient(135deg,#2563EB,#7C3AED); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin: 0 auto 14px; box-shadow: 0 8px 24px rgba(37,99,235,0.4); }
+
+    /* Role select dropdown in register form */
+    .login-select {
+      width: 100%; padding: 11px 14px; border-radius: 10px;
+      background: rgba(255,255,255,0.05); border: 1px solid rgba(80,140,255,0.15);
+      color: #E8F0FF; font-size: 0.9rem; font-family: 'DM Sans', sans-serif;
+      outline: none; transition: border 0.2s; appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2364748B' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 14px center;
+      background-size: 12px; padding-right: 36px; cursor: pointer;
+    }
+    .login-select:focus { border-color: rgba(59,130,246,0.5); }
+    .login-select option { background: #0d1b35; color: #E8F0FF; }
+
+    /* App shell */
+    #app-shell { flex-direction: column; height: 100vh; }
+
+    /* Utility */
+    #role-select { display: none; }
+  </style>
+</head>
+<body>
+
+<!-- ══ Emergency Overlay ══ -->
+<div id="emergency-overlay">
+  <div class="em-header">
+    <div class="em-header-left">
+      <div class="em-logo">
+        <div class="em-logo-pill">M</div>
+        MediSync
+      </div>
+      <div class="em-badge"><span class="em-pulse"></span> Emergency Mode</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="em-offline">✓ Offline Ready</div>
+      <button class="em-close" onclick="closeEmergency()">✕ Close</button>
+    </div>
+  </div>
+
+  <div class="em-main">
+    <div class="em-patient-identity">
+      <div class="em-avatar" id="em-avatar">RS</div>
+      <div>
+        <div class="em-patient-name" id="em-name">Rajesh Kumar Sharma</div>
+        <div class="em-patient-meta" id="em-meta">45 years · Male · ID: P-24114045</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="em-section-label">Critical Info</div>
+      <div class="em-blood-card">
+        <div>
+          <div class="em-blood-display" id="em-blood">B+</div>
+          <div class="em-blood-sub">Blood Group</div>
+        </div>
+        <div class="em-blood-icon">🩸</div>
+      </div>
+    </div>
+
+    <div class="em-allergy-card">
+      <div class="em-allergy-warning">
+        <div class="em-warning-icon">⚠️</div>
+        <div>
+          <div class="em-warning-title">DO NOT ADMINISTER</div>
+          <div class="em-warning-sub">Patient has known drug allergies</div>
+        </div>
+      </div>
+      <div class="em-allergy-tags" id="em-allergies">
+        <div class="em-allergy-tag">Penicillin</div>
+        <div class="em-allergy-tag">Sulfonamides</div>
+      </div>
+    </div>
+
+    <div class="em-conditions-card">
+      <div class="em-section-label" style="margin-bottom:12px;">Known Conditions</div>
+      <div id="em-conditions">
+        <div class="em-condition-item"><div class="em-condition-dot"></div><div class="em-condition-text">Type 2 Diabetes</div></div>
+        <div class="em-condition-item"><div class="em-condition-dot" style="background:#C084FC;"></div><div class="em-condition-text">Hypertension</div></div>
+      </div>
+    </div>
+
+    <div class="em-contact-card">
+      <div class="em-contact-icon">📞</div>
+      <div>
+        <div class="em-contact-name" id="em-contact-name">Sunita Sharma (Wife)</div>
+        <div class="em-contact-phone" id="em-contact-phone">+91 98765 11111</div>
+      </div>
+    </div>
+
+    <div class="em-note-card">
+      <div class="em-note-header"><span>💊</span><div class="em-note-label">Doctor's Note</div></div>
+      <div class="em-note-text" id="em-note">Patient on Metformin 500mg. Do NOT administer Penicillin or Sulfonamides. Contact cardiologist if presenting with chest pain.</div>
+    </div>
+
+    <div class="em-actions">
+      <button class="em-action-btn em-btn-call" onclick="emCallAmbulance(this)">📞 Call Ambulance (108)</button>
+      <button class="em-action-btn em-btn-hospital" id="em-alert-btn" onclick="emAlertHospital()">🏥 Alert Nearest Hospital</button>
+    </div>
+
+    <div class="em-confirm" id="em-confirm">
+      <div class="em-confirm-icon">✅</div>
+      <div class="em-confirm-title">Hospital Alerted Successfully</div>
+      <div class="em-confirm-sub">The hospital ER has been notified and is preparing for arrival.</div>
+    </div>
+  </div>
+
+  <div class="em-footer">MediSync Emergency Profile · All data encoded offline in QR · Read-only view · No login required</div>
+</div>
+
+<!-- ══ Toast Container ══ -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- ══ Login Screen ══ -->
+<div id="login-screen" style="display:none;">
+  <div class="login-brand">
+    <div class="login-brand-icon">🩺</div>
+    <h1>Medi<span>Sync</span></h1>
+    <p>One Scan. One Identity. Total Care.</p>
+  </div>
+
+  <div class="login-card">
+    <div class="login-tabs">
+      <button class="login-tab active" id="login-tab-login" onclick="renderLoginForm('login')">Login</button>
+      <button class="login-tab" id="login-tab-register" onclick="renderLoginForm('register')">Register</button>
+    </div>
+    <div id="login-form-area"></div>
+  </div>
+
+
+
+  <div style="text-align:center;font-size:0.72rem;color:#4B5E80;">
+    CSC-206 Software Engineering · Group 17 · IIT Roorkee
+  </div>
+</div>
+
+<!-- ══ Hidden role-select div (needed by old code refs) ══ -->
+<div id="role-select"></div>
+
+<!-- ══ App Shell ══ -->
+<div id="app-shell" style="display:none;">
+  <header class="topnav">
+    <div class="logo">
+      <div class="logo-mark">M</div>
+      MediSync
+    </div>
+    <nav id="topnav-links"></nav>
+    <div class="nav-user">
+      <div id="nav-avatar" class="avatar">?</div>
+      <span id="nav-name" style="font-weight:600;color:var(--text-primary);">User</span>
+      <button class="logout-btn" id="nav-logout" onclick="doLogout()">Logout</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar" id="app-sidebar"></aside>
+    <main class="main-content" id="main-content"></main>
+  </div>
+</div>
+
+<!-- ══ Scripts ══ -->
+<script src="backend/db.js"></script>
+<script src="backend/reminder-engine.js"></script>
+<script src="backend/qr-generator.js"></script>
+<script src="backend/ai-chatbot.js"></script>
+<script src="frontend/js/app.js"></script>
+<script src="frontend/js/patient.js"></script>
+<script src="frontend/js/doctor.js"></script>
+<script src="frontend/js/hospital.js"></script>
+<script src="frontend/js/paramedic.js"></script>
+
+<script>
+  /* ── Emergency overlay controls ── */
+  function openEmergency() {
+    document.getElementById('emergency-overlay').classList.add('open');
+    document.getElementById('em-confirm').classList.remove('visible');
+    // Reset hospital picker if visible
+    var picker = document.getElementById('em-hospital-picker');
+    if (picker) picker.style.display = 'none';
+    var alertBtn = document.getElementById('em-alert-btn');
+    if (alertBtn) { alertBtn.textContent = '🏥 Alert Nearest Hospital'; alertBtn.disabled = false; alertBtn.style.opacity = '1'; alertBtn.style.display = ''; }
+  }
+  function closeEmergency() {
+    document.getElementById('emergency-overlay').classList.remove('open');
+  }
+  function emCallAmbulance(btn) {
+    var orig = btn.innerHTML;
+    btn.textContent = '📞 Dialing 108...';
+    setTimeout(function(){ btn.innerHTML = orig; }, 2200);
+  }
+
+  /* ── Get registered hospitals from localStorage + demo ── */
+  function getRegisteredHospitals() {
+    var demo = [
+      { name: 'Max Healthcare', address: 'Civil Lines, Roorkee', email: 'hospital@demo.com' },
+    ];
+    try {
+      var stored = JSON.parse(localStorage.getItem('medisync_registered_users') || '{}');
+      var extra = Object.entries(stored)
+        .filter(function(e){ return e[1].role === 'hospital'; })
+        .map(function(e){ return { name: e[1].name || 'Hospital', address: e[1].address || '', email: e[0] }; });
+      // Merge: add stored hospitals not already in demo (by email)
+      extra.forEach(function(h) {
+        if (!demo.find(function(d){ return d.email === h.email; })) demo.push(h);
+      });
+    } catch(e) {}
+    return demo;
+  }
+
+  /* ── Build current patient info from the emergency overlay fields ── */
+  function getEmergencyPatientSnapshot() {
+    return {
+      name:       (document.getElementById('em-name')?.textContent  || 'Unknown Patient').trim(),
+      bloodGroup: (document.getElementById('em-blood')?.textContent || 'Unknown').trim(),
+      allergies:  Array.from(document.querySelectorAll('#em-allergies .em-allergy-tag')).map(function(t){ return t.textContent.trim(); }).join(', ') || 'None known',
+      conditions: Array.from(document.querySelectorAll('#em-conditions .em-condition-text')).map(function(t){ return t.textContent.trim(); }).join(', ') || '',
+      doctorNote: (document.getElementById('em-note')?.textContent  || '').trim(),
+    };
+  }
+
+  /* ── Send alert directly to a specific hospital ── */
+  function sendAlertToHospital(hospitalName, hospitalAddress) {
+    // If we're in the paramedic dashboard, use the full triage form flow
+    if (typeof hasScannedPatientData === 'function' && hasScannedPatientData() && typeof openTriageFromScannedQR === 'function') {
+      // Pre-fill hospital name into triage form then open it
+      closeEmergency();
+      openTriageFromScannedQR();
+      setTimeout(function(){
+        var hInput = document.getElementById('triage-hospital');
+        if (hInput) hInput.value = hospitalName;
+        var lInput = document.getElementById('triage-location');
+        if (lInput && !lInput.value.trim()) lInput.value = hospitalAddress;
+      }, 200);
+      return;
+    }
+
+    // Bystander / direct QR scan: create a direct alert with patient info from overlay
+    var patient = getEmergencyPatientSnapshot();
+    if (typeof MediSyncDB !== 'undefined' && MediSyncDB.addHospitalAlert) {
+      MediSyncDB.addHospitalAlert({
+        patient:      patient.name,
+        bloodGroup:   patient.bloodGroup,
+        allergies:    patient.allergies,
+        injuries:     ['Emergency — QR Scan'],
+        eta:          'ETA unknown',
+        paramedic:    'Bystander / Self-reported QR',
+        location:     'Location pending',
+        priority:     'high',
+        hospitalName: hospitalName,
+        hospitalId:   'default',
+        timestamp:    new Date().toISOString(),
+      });
+    }
+
+    // Show confirmation
+    var picker = document.getElementById('em-hospital-picker');
+    if (picker) picker.style.display = 'none';
+    var alertBtn = document.getElementById('em-alert-btn');
+    if (alertBtn) { alertBtn.textContent = '✓ ' + hospitalName + ' Alerted'; alertBtn.style.opacity = '1'; }
+    var confirm = document.getElementById('em-confirm');
+    if (confirm) {
+      confirm.classList.add('visible');
+      var sub = confirm.querySelector('.em-confirm-sub');
+      if (sub) sub.textContent = hospitalName + ' ER has been notified and is preparing for arrival.';
+    }
+  }
+
+  /* ── Main alert button handler ── */
+  function emAlertHospital() {
+    var hospitals = getRegisteredHospitals();
+    var alertBtn  = document.getElementById('em-alert-btn');
+
+    // If only one hospital registered, alert it directly
+    if (hospitals.length === 1) {
+      sendAlertToHospital(hospitals[0].name, hospitals[0].address);
+      return;
+    }
+
+    // Show hospital picker
+    alertBtn.style.display = 'none';
+    var picker = document.getElementById('em-hospital-picker');
+    if (!picker) {
+      picker = document.createElement('div');
+      picker.id = 'em-hospital-picker';
+      picker.style.cssText = 'background:rgba(15,23,42,0.95);border:1px solid rgba(255,255,255,0.12);border-radius:12px;padding:16px;margin-top:8px;';
+      alertBtn.parentNode.insertBefore(picker, alertBtn.nextSibling);
+    }
+    picker.style.display = 'block';
+    picker.innerHTML =
+      '<div style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:rgba(255,255,255,0.5);margin-bottom:10px;">Select Receiving Hospital</div>' +
+      hospitals.map(function(h) {
+        return '<div onclick="sendAlertToHospital(\'' + h.name.replace(/'/g,"\\'") + '\',\'' + h.address.replace(/'/g,"\\'") + '\')" ' +
+          'style="padding:10px 12px;border-radius:8px;cursor:pointer;border:1px solid rgba(255,255,255,0.08);margin-bottom:6px;display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.04);transition:background 0.15s;" ' +
+          'onmouseover="this.style.background=\'rgba(255,255,255,0.09)\'" onmouseout="this.style.background=\'rgba(255,255,255,0.04)\'">' +
+          '<div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#7C3AED,#2563EB);display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:800;color:#fff;flex-shrink:0;">' +
+          h.name.trim().split(/\s+/).map(function(w){ return w[0]; }).join('').slice(0,2).toUpperCase() +
+          '</div>' +
+          '<div><div style="font-weight:600;font-size:0.9rem;color:#fff;">' + h.name + '</div>' +
+          '<div style="font-size:0.75rem;color:rgba(255,255,255,0.45);">' + (h.address || 'Hospital') + '</div></div>' +
+          '<span style="margin-left:auto;font-size:0.75rem;color:rgba(100,200,100,0.9);font-weight:600;">Alert \u2192</span>' +
+          '</div>';
+      }).join('') +
+      '<button onclick="var p=document.getElementById(\'em-hospital-picker\');if(p)p.style.display=\'none\';var b=document.getElementById(\'em-alert-btn\');if(b)b.style.display=\'\';" ' +
+      'style="width:100%;margin-top:6px;padding:8px;background:transparent;border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:rgba(255,255,255,0.4);cursor:pointer;font-size:0.8rem;">Cancel</button>';
+  }
+
+  window.openEmergency      = openEmergency;
+  window.closeEmergency     = closeEmergency;
+  window.emAlertHospital    = emAlertHospital;
+  window.sendAlertToHospital = sendAlertToHospital;
+  window.simulateScan       = openEmergency;
+</script>
+
+</body>
+</html>
